@@ -3,13 +3,17 @@ Imports System.Drawing
 Imports System.Windows.Forms
 
 Public Class ImageWorkArea
-    Private ScaleFactor As Single
-    Private SizeToFit As Boolean
+    Public ScaleFactor As Single
+    Public ScalerMaximum As Integer
+    Public ScalerMinimum As Integer
+    Public SizeToFit As Boolean
 
     Private ScalerPanelBox(4) As Point
     Private ScalerPanelFullBox(4) As Point
     Private ScalerPanelAnimation As Boolean
     Private ScalerPanelAnimationUp As Boolean
+
+    Public Event ScaleFactorChange(Value As Single)
 
     Public Sub New()
         ScaleFactor = 1
@@ -40,14 +44,15 @@ Public Class ImageWorkArea
             Me.PictureBox1.Visible = True
             If Me.SizeToFit Then
                 Me.ScaleFactor = CSng(Math.Min(CDbl((CDbl(Me.Panel1.Height) / CDbl(Me.PictureBox1.Image.Height))), CDbl((CDbl(Me.Panel1.Width) / CDbl(Me.PictureBox1.Image.Width)))))
-                If Me.ScaleFactor > tbScaler.Maximum / 10 Then
-                    Me.ScaleFactor = tbScaler.Maximum / 10
-                ElseIf Me.ScaleFactor < tbScaler.Minimum / 10 Then
-                    Me.ScaleFactor = tbScaler.Minimum / 10
+                If Me.ScaleFactor > ScalerMaximum / 10 Then
+                    Me.ScaleFactor = ScalerMaximum / 10
+                ElseIf Me.ScaleFactor < ScalerMinimum / 10 Then
+                    Me.ScaleFactor = ScalerMinimum / 10
                 End If
-                tbScaler.Value = Me.ScaleFactor * 10
+                RaiseEvent ScaleFactorChange(Me.ScaleFactor * 10)
+
             End If
-            Dim size2 As New Size(CInt(Math.Round(CDbl((Me.PictureBox1.Image.Width * Me.ScaleFactor)))), CInt(Math.Round(CDbl((Me.PictureBox1.Image.Height * Me.ScaleFactor)))))
+                Dim size2 As New Size(CInt(Math.Round(CDbl((Me.PictureBox1.Image.Width * Me.ScaleFactor)))), CInt(Math.Round(CDbl((Me.PictureBox1.Image.Height * Me.ScaleFactor)))))
             Me.PictureBox1.Size = size2
             If (Me.PictureBox1.Width < Me.Panel1.Width) Then
                 Me.PictureBox1.Left = CInt(Math.Round(CDbl((CDbl((Me.Panel1.Width - Me.PictureBox1.Width)) / 2))))
@@ -84,69 +89,15 @@ Public Class ImageWorkArea
         End Set
     End Property
 
-    Private Sub ImageWorkArea_MouseMove(sender As Object, e As MouseEventArgs) Handles Panel1.MouseMove, PictureBox1.MouseMove
-        Dim CursorLocation As Point = Me.PointToClient(System.Windows.Forms.Cursor.Position)
-        'Debug.Print("Top=" & Me.Top)
-        'Debug.Print("X=" & e.Location.X & " Y=" & e.Location.Y)
-        'Debug.Print("X=" & CursorLocation.X & " Y=" & CursorLocation.Y)
-        If ScalerPanelAnimation = False And PnlScaler.Visible = False Then
-            If PinPolygon(CursorLocation, ScalerPanelBox) = True Then
-                PnlScaler.Visible = True
-                PnlScaler.Top = -PnlScaler.Height
-                ScalerPanelAnimation = True
-                ScalerPanelAnimationUp = False
-                TmrScalerPanel.Interval = 10
-                TmrScalerPanel.Enabled = True
-            End If
-        End If
-    End Sub
+
 
     Private Sub ImageWorkArea_Resize(sender As Object, e As EventArgs) Handles Me.Resize
         Me.UpdateMe()
     End Sub
 
-    Private Sub TmrScalerPanel_Tick(sender As Object, e As EventArgs) Handles TmrScalerPanel.Tick
-        If ScalerPanelAnimation Then
-            If ScalerPanelAnimationUp Then
-                'Debug.Print("up")
-                If -PnlScaler.Top < PnlScaler.Height Then
-                    PnlScaler.Top = PnlScaler.Top - 1
-                Else
-                    ScalerPanelAnimation = False
-                    PnlScaler.Visible = False
-                    TmrScalerPanel.Enabled = False
-                End If
-            Else
-                'Debug.Print("down")
-                If PnlScaler.Top < 0 Then
-                    PnlScaler.Top = PnlScaler.Top + 1
-                Else
-                    TmrScalerPanel.Interval = 5000
-                    ScalerPanelAnimation = False
-                End If
-            End If
-        Else
-            Dim CursorLocation As Point = Me.PointToClient(System.Windows.Forms.Cursor.Position)
-            If PinPolygon(CursorLocation, ScalerPanelFullBox) = False Then
-                ScalerPanelAnimationUp = True
-                ScalerPanelAnimation = True
-                TmrScalerPanel.Interval = 10
-            End If
-        End If
-    End Sub
 
-    Private Function PinPolygon(P As Point, V As Point()) As Boolean
-        Dim ret As Boolean
-        Dim Path As New GraphicsPath()
-        Path.AddLines(V)
-        Dim r1 As New Region(Path)
-        ret = r1.IsVisible(P)
-        r1.Dispose()
-        r1 = Nothing
-        Path.Dispose()
-        Path = Nothing
-        Return ret
-    End Function
+
+
 
     Private Function CreateGridBackground(cellSize As Integer, cellColor As Color, alternateCellColor As Color) As Bitmap
         Dim result As Bitmap
@@ -165,17 +116,5 @@ Public Class ImageWorkArea
         Return result
     End Function
 
-    Private Sub cbSizeToFit_CheckedChanged(sender As Object, e As EventArgs) Handles cbSizeToFit.CheckedChanged
-        Me.tbScaler.Enabled = Not Me.cbSizeToFit.Checked
-        Me.SizeToFit = Me.cbSizeToFit.Checked
-        If Not Me.cbSizeToFit.Checked Then
-            Me.ScaleFactor = Me.tbScaler.Value / 10
-        End If
-        Me.UpdateMe()
-    End Sub
 
-    Private Sub tbScaler_Scroll(sender As Object, e As EventArgs) Handles tbScaler.Scroll
-        Me.ScaleFactor = Me.tbScaler.Value / 10
-        Me.UpdateMe()
-    End Sub
 End Class

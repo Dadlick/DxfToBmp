@@ -1,10 +1,10 @@
-п»їImports DxfToBmp
-<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
+Imports DxfToBmp
+<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
 Partial Class DxfToBmpFrm
     Inherits System.Windows.Forms.Form
 
-    'Р¤РѕСЂРјР° РїРµСЂРµРѕРїСЂРµРґРµР»СЏРµС‚ dispose РґР»СЏ РѕС‡РёСЃС‚РєРё СЃРїРёСЃРєР° РєРѕРјРїРѕРЅРµРЅС‚РѕРІ.
-    <System.Diagnostics.DebuggerNonUserCode()>
+    'Форма переопределяет dispose для очистки списка компонентов.
+    <System.Diagnostics.DebuggerNonUserCode()> _
     Protected Overrides Sub Dispose(ByVal disposing As Boolean)
         Try
             If disposing AndAlso components IsNot Nothing Then
@@ -15,19 +15,21 @@ Partial Class DxfToBmpFrm
         End Try
     End Sub
 
-    'РЇРІР»СЏРµС‚СЃСЏ РѕР±СЏР·Р°С‚РµР»СЊРЅРѕР№ РґР»СЏ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂР° С„РѕСЂРј Windows Forms
+    'Является обязательной для конструктора форм Windows Forms
     Private components As System.ComponentModel.IContainer
 
-    'РџСЂРёРјРµС‡Р°РЅРёРµ: СЃР»РµРґСѓСЋС‰Р°СЏ РїСЂРѕС†РµРґСѓСЂР° СЏРІР»СЏРµС‚СЃСЏ РѕР±СЏР·Р°С‚РµР»СЊРЅРѕР№ РґР»СЏ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂР° С„РѕСЂРј Windows Forms
-    'Р”Р»СЏ РµРµ РёР·РјРµРЅРµРЅРёСЏ РёСЃРїРѕР»СЊР·СѓР№С‚Рµ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ С„РѕСЂРј Windows Form.  
-    'РќРµ РёР·РјРµРЅСЏР№С‚Рµ РµРµ РІ СЂРµРґР°РєС‚РѕСЂРµ РёСЃС…РѕРґРЅРѕРіРѕ РєРѕРґР°.
-    <System.Diagnostics.DebuggerStepThrough()>
+    'Примечание: следующая процедура является обязательной для конструктора форм Windows Forms
+    'Для ее изменения используйте конструктор форм Windows Form.  
+    'Не изменяйте ее в редакторе исходного кода.
+    <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(DxfToBmpFrm))
         Me.TableLayoutPanel1 = New System.Windows.Forms.TableLayoutPanel()
         Me.Panel1 = New System.Windows.Forms.Panel()
         Me.GroupBox5 = New System.Windows.Forms.GroupBox()
+        Me.TextBtn = New System.Windows.Forms.CheckBox()
         Me.HatchBtn = New System.Windows.Forms.CheckBox()
+        Me.EllipseBtn = New System.Windows.Forms.CheckBox()
         Me.CircleBtn = New System.Windows.Forms.CheckBox()
         Me.SplineBtn = New System.Windows.Forms.CheckBox()
         Me.LwPolylineBtn = New System.Windows.Forms.CheckBox()
@@ -55,12 +57,14 @@ Partial Class DxfToBmpFrm
         Me.Label8 = New System.Windows.Forms.Label()
         Me.TopPcs = New System.Windows.Forms.NumericUpDown()
         Me.GroupBox3 = New System.Windows.Forms.GroupBox()
-        Me.PcsMmTxt = New System.Windows.Forms.TextBox()
+        Me.tbScaler = New System.Windows.Forms.TrackBar()
+        Me.cbSizeToFit = New System.Windows.Forms.CheckBox()
         Me.SaveImageBtn = New System.Windows.Forms.Button()
         Me.RedrawBtn = New System.Windows.Forms.Button()
         Me.OpenDxfBtn = New System.Windows.Forms.Button()
+        Me.PcsMmTxt = New DxfToBmp.NoPasteIntTextBox()
         Me.ImageWorkArea1 = New DxfToBmp.ImageWorkArea()
-        Me.EllipseBtn = New System.Windows.Forms.CheckBox()
+        Me.ArcBtn = New System.Windows.Forms.CheckBox()
         Me.TableLayoutPanel1.SuspendLayout()
         Me.Panel1.SuspendLayout()
         Me.GroupBox5.SuspendLayout()
@@ -75,6 +79,7 @@ Partial Class DxfToBmpFrm
         CType(Me.DownPcs, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.TopPcs, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.GroupBox3.SuspendLayout()
+        CType(Me.tbScaler, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
         'TableLayoutPanel1
@@ -100,6 +105,8 @@ Partial Class DxfToBmpFrm
         Me.Panel1.Controls.Add(Me.GroupBox1)
         Me.Panel1.Controls.Add(Me.GroupBox4)
         Me.Panel1.Controls.Add(Me.GroupBox3)
+        Me.Panel1.Controls.Add(Me.tbScaler)
+        Me.Panel1.Controls.Add(Me.cbSizeToFit)
         Me.Panel1.Controls.Add(Me.SaveImageBtn)
         Me.Panel1.Controls.Add(Me.RedrawBtn)
         Me.Panel1.Controls.Add(Me.OpenDxfBtn)
@@ -112,19 +119,33 @@ Partial Class DxfToBmpFrm
         'GroupBox5
         '
         Me.GroupBox5.AutoSize = True
+        Me.GroupBox5.Controls.Add(Me.TextBtn)
         Me.GroupBox5.Controls.Add(Me.HatchBtn)
         Me.GroupBox5.Controls.Add(Me.EllipseBtn)
         Me.GroupBox5.Controls.Add(Me.CircleBtn)
         Me.GroupBox5.Controls.Add(Me.SplineBtn)
+        Me.GroupBox5.Controls.Add(Me.ArcBtn)
         Me.GroupBox5.Controls.Add(Me.LwPolylineBtn)
         Me.GroupBox5.Controls.Add(Me.LineBtn)
         Me.GroupBox5.Dock = System.Windows.Forms.DockStyle.Top
-        Me.GroupBox5.Location = New System.Drawing.Point(0, 328)
+        Me.GroupBox5.Location = New System.Drawing.Point(0, 370)
         Me.GroupBox5.Name = "GroupBox5"
-        Me.GroupBox5.Size = New System.Drawing.Size(127, 121)
+        Me.GroupBox5.Size = New System.Drawing.Size(127, 155)
         Me.GroupBox5.TabIndex = 7
         Me.GroupBox5.TabStop = False
-        Me.GroupBox5.Text = "РўРёРїС‹"
+        Me.GroupBox5.Text = "Типы"
+        '
+        'TextBtn
+        '
+        Me.TextBtn.AutoSize = True
+        Me.TextBtn.Dock = System.Windows.Forms.DockStyle.Top
+        Me.TextBtn.Location = New System.Drawing.Point(3, 118)
+        Me.TextBtn.Name = "TextBtn"
+        Me.TextBtn.Size = New System.Drawing.Size(121, 17)
+        Me.TextBtn.TabIndex = 6
+        Me.TextBtn.Text = "Text"
+        Me.TextBtn.UseVisualStyleBackColor = True
+        Me.TextBtn.Visible = False
         '
         'HatchBtn
         '
@@ -132,12 +153,25 @@ Partial Class DxfToBmpFrm
         Me.HatchBtn.Checked = True
         Me.HatchBtn.CheckState = System.Windows.Forms.CheckState.Checked
         Me.HatchBtn.Dock = System.Windows.Forms.DockStyle.Top
-        Me.HatchBtn.Location = New System.Drawing.Point(3, 84)
+        Me.HatchBtn.Location = New System.Drawing.Point(3, 101)
         Me.HatchBtn.Name = "HatchBtn"
         Me.HatchBtn.Size = New System.Drawing.Size(121, 17)
         Me.HatchBtn.TabIndex = 2
         Me.HatchBtn.Text = "Hatch"
         Me.HatchBtn.UseVisualStyleBackColor = True
+        '
+        'EllipseBtn
+        '
+        Me.EllipseBtn.AutoSize = True
+        Me.EllipseBtn.Checked = True
+        Me.EllipseBtn.CheckState = System.Windows.Forms.CheckState.Checked
+        Me.EllipseBtn.Dock = System.Windows.Forms.DockStyle.Top
+        Me.EllipseBtn.Location = New System.Drawing.Point(3, 84)
+        Me.EllipseBtn.Name = "EllipseBtn"
+        Me.EllipseBtn.Size = New System.Drawing.Size(121, 17)
+        Me.EllipseBtn.TabIndex = 5
+        Me.EllipseBtn.Text = "Ellipse"
+        Me.EllipseBtn.UseVisualStyleBackColor = True
         '
         'CircleBtn
         '
@@ -195,12 +229,12 @@ Partial Class DxfToBmpFrm
         '
         Me.GroupBox2.Controls.Add(Me.TableLayoutPanel3)
         Me.GroupBox2.Dock = System.Windows.Forms.DockStyle.Top
-        Me.GroupBox2.Location = New System.Drawing.Point(0, 272)
+        Me.GroupBox2.Location = New System.Drawing.Point(0, 314)
         Me.GroupBox2.Name = "GroupBox2"
         Me.GroupBox2.Size = New System.Drawing.Size(127, 56)
         Me.GroupBox2.TabIndex = 2
         Me.GroupBox2.TabStop = False
-        Me.GroupBox2.Text = "Р’С‹СЃРѕС‚Р°"
+        Me.GroupBox2.Text = "Высота"
         '
         'TableLayoutPanel3
         '
@@ -268,12 +302,12 @@ Partial Class DxfToBmpFrm
         '
         Me.GroupBox1.Controls.Add(Me.TableLayoutPanel2)
         Me.GroupBox1.Dock = System.Windows.Forms.DockStyle.Top
-        Me.GroupBox1.Location = New System.Drawing.Point(0, 216)
+        Me.GroupBox1.Location = New System.Drawing.Point(0, 258)
         Me.GroupBox1.Name = "GroupBox1"
         Me.GroupBox1.Size = New System.Drawing.Size(127, 56)
         Me.GroupBox1.TabIndex = 1
         Me.GroupBox1.TabStop = False
-        Me.GroupBox1.Text = "РЁРёСЂРёРЅР°"
+        Me.GroupBox1.Text = "Ширина"
         '
         'TableLayoutPanel2
         '
@@ -341,12 +375,12 @@ Partial Class DxfToBmpFrm
         '
         Me.GroupBox4.Controls.Add(Me.TableLayoutPanel4)
         Me.GroupBox4.Dock = System.Windows.Forms.DockStyle.Top
-        Me.GroupBox4.Location = New System.Drawing.Point(0, 119)
+        Me.GroupBox4.Location = New System.Drawing.Point(0, 161)
         Me.GroupBox4.Name = "GroupBox4"
         Me.GroupBox4.Size = New System.Drawing.Size(127, 97)
         Me.GroupBox4.TabIndex = 5
         Me.GroupBox4.TabStop = False
-        Me.GroupBox4.Text = "РћС‚СЃС‚СѓРї, pcs"
+        Me.GroupBox4.Text = "Отступ, pcs"
         '
         'TableLayoutPanel4
         '
@@ -404,7 +438,7 @@ Partial Class DxfToBmpFrm
         Me.Label5.Name = "Label5"
         Me.Label5.Size = New System.Drawing.Size(54, 13)
         Me.Label5.TabIndex = 1
-        Me.Label5.Text = "СЃРІРµСЂС…Сѓ"
+        Me.Label5.Text = "сверху"
         Me.Label5.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
         '
         'Label6
@@ -415,7 +449,7 @@ Partial Class DxfToBmpFrm
         Me.Label6.Name = "Label6"
         Me.Label6.Size = New System.Drawing.Size(55, 13)
         Me.Label6.TabIndex = 2
-        Me.Label6.Text = "СЃРЅРёР·Сѓ"
+        Me.Label6.Text = "снизу"
         Me.Label6.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
         '
         'Label7
@@ -426,7 +460,7 @@ Partial Class DxfToBmpFrm
         Me.Label7.Name = "Label7"
         Me.Label7.Size = New System.Drawing.Size(54, 13)
         Me.Label7.TabIndex = 4
-        Me.Label7.Text = "СЃР»РµРІР°"
+        Me.Label7.Text = "слева"
         Me.Label7.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
         '
         'Label8
@@ -437,7 +471,7 @@ Partial Class DxfToBmpFrm
         Me.Label8.Name = "Label8"
         Me.Label8.Size = New System.Drawing.Size(55, 13)
         Me.Label8.TabIndex = 5
-        Me.Label8.Text = "СЃРїСЂР°РІР°"
+        Me.Label8.Text = "справа"
         Me.Label8.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
         '
         'TopPcs
@@ -452,12 +486,69 @@ Partial Class DxfToBmpFrm
         '
         Me.GroupBox3.Controls.Add(Me.PcsMmTxt)
         Me.GroupBox3.Dock = System.Windows.Forms.DockStyle.Top
-        Me.GroupBox3.Location = New System.Drawing.Point(0, 81)
+        Me.GroupBox3.Location = New System.Drawing.Point(0, 123)
         Me.GroupBox3.Name = "GroupBox3"
         Me.GroupBox3.Size = New System.Drawing.Size(127, 38)
         Me.GroupBox3.TabIndex = 3
         Me.GroupBox3.TabStop = False
         Me.GroupBox3.Text = "pcs/mm"
+        '
+        'tbScaler
+        '
+        Me.tbScaler.AutoSize = False
+        Me.tbScaler.Dock = System.Windows.Forms.DockStyle.Top
+        Me.tbScaler.Location = New System.Drawing.Point(0, 98)
+        Me.tbScaler.Maximum = 40
+        Me.tbScaler.Minimum = 1
+        Me.tbScaler.Name = "tbScaler"
+        Me.tbScaler.Size = New System.Drawing.Size(127, 25)
+        Me.tbScaler.TabIndex = 1
+        Me.tbScaler.TickStyle = System.Windows.Forms.TickStyle.None
+        Me.tbScaler.Value = 1
+        '
+        'cbSizeToFit
+        '
+        Me.cbSizeToFit.AutoSize = True
+        Me.cbSizeToFit.Checked = True
+        Me.cbSizeToFit.CheckState = System.Windows.Forms.CheckState.Checked
+        Me.cbSizeToFit.Dock = System.Windows.Forms.DockStyle.Top
+        Me.cbSizeToFit.Location = New System.Drawing.Point(0, 81)
+        Me.cbSizeToFit.Name = "cbSizeToFit"
+        Me.cbSizeToFit.Padding = New System.Windows.Forms.Padding(3, 0, 0, 0)
+        Me.cbSizeToFit.Size = New System.Drawing.Size(127, 17)
+        Me.cbSizeToFit.TabIndex = 1
+        Me.cbSizeToFit.Text = "Вписать"
+        Me.cbSizeToFit.UseVisualStyleBackColor = True
+        '
+        'SaveImageBtn
+        '
+        Me.SaveImageBtn.Dock = System.Windows.Forms.DockStyle.Top
+        Me.SaveImageBtn.Location = New System.Drawing.Point(0, 54)
+        Me.SaveImageBtn.Name = "SaveImageBtn"
+        Me.SaveImageBtn.Size = New System.Drawing.Size(127, 27)
+        Me.SaveImageBtn.TabIndex = 8
+        Me.SaveImageBtn.Text = "Сохранить Bmp"
+        Me.SaveImageBtn.UseVisualStyleBackColor = True
+        '
+        'RedrawBtn
+        '
+        Me.RedrawBtn.Dock = System.Windows.Forms.DockStyle.Top
+        Me.RedrawBtn.Location = New System.Drawing.Point(0, 27)
+        Me.RedrawBtn.Name = "RedrawBtn"
+        Me.RedrawBtn.Size = New System.Drawing.Size(127, 27)
+        Me.RedrawBtn.TabIndex = 6
+        Me.RedrawBtn.Text = "Перерисовать"
+        Me.RedrawBtn.UseVisualStyleBackColor = True
+        '
+        'OpenDxfBtn
+        '
+        Me.OpenDxfBtn.Dock = System.Windows.Forms.DockStyle.Top
+        Me.OpenDxfBtn.Location = New System.Drawing.Point(0, 0)
+        Me.OpenDxfBtn.Name = "OpenDxfBtn"
+        Me.OpenDxfBtn.Size = New System.Drawing.Size(127, 27)
+        Me.OpenDxfBtn.TabIndex = 4
+        Me.OpenDxfBtn.Text = "Открыть Dxf"
+        Me.OpenDxfBtn.UseVisualStyleBackColor = True
         '
         'PcsMmTxt
         '
@@ -468,38 +559,9 @@ Partial Class DxfToBmpFrm
         Me.PcsMmTxt.TabIndex = 0
         Me.PcsMmTxt.Text = "5"
         '
-        'SaveImageBtn
-        '
-        Me.SaveImageBtn.Dock = System.Windows.Forms.DockStyle.Top
-        Me.SaveImageBtn.Location = New System.Drawing.Point(0, 54)
-        Me.SaveImageBtn.Name = "SaveImageBtn"
-        Me.SaveImageBtn.Size = New System.Drawing.Size(127, 27)
-        Me.SaveImageBtn.TabIndex = 8
-        Me.SaveImageBtn.Text = "РЎРѕС…СЂР°РЅРёС‚СЊ Bmp"
-        Me.SaveImageBtn.UseVisualStyleBackColor = True
-        '
-        'RedrawBtn
-        '
-        Me.RedrawBtn.Dock = System.Windows.Forms.DockStyle.Top
-        Me.RedrawBtn.Location = New System.Drawing.Point(0, 27)
-        Me.RedrawBtn.Name = "RedrawBtn"
-        Me.RedrawBtn.Size = New System.Drawing.Size(127, 27)
-        Me.RedrawBtn.TabIndex = 6
-        Me.RedrawBtn.Text = "РџРµСЂРµСЂРёСЃРѕРІР°С‚СЊ"
-        Me.RedrawBtn.UseVisualStyleBackColor = True
-        '
-        'OpenDxfBtn
-        '
-        Me.OpenDxfBtn.Dock = System.Windows.Forms.DockStyle.Top
-        Me.OpenDxfBtn.Location = New System.Drawing.Point(0, 0)
-        Me.OpenDxfBtn.Name = "OpenDxfBtn"
-        Me.OpenDxfBtn.Size = New System.Drawing.Size(127, 27)
-        Me.OpenDxfBtn.TabIndex = 4
-        Me.OpenDxfBtn.Text = "РћС‚РєСЂС‹С‚СЊ Dxf"
-        Me.OpenDxfBtn.UseVisualStyleBackColor = True
-        '
         'ImageWorkArea1
         '
+        Me.ImageWorkArea1.AllowDrop = True
         Me.ImageWorkArea1.Dock = System.Windows.Forms.DockStyle.Fill
         Me.ImageWorkArea1.Image = Nothing
         Me.ImageWorkArea1.Location = New System.Drawing.Point(150, 0)
@@ -509,18 +571,18 @@ Partial Class DxfToBmpFrm
         Me.ImageWorkArea1.Size = New System.Drawing.Size(334, 412)
         Me.ImageWorkArea1.TabIndex = 1
         '
-        'EllipseBtn
+        'ArcBtn
         '
-        Me.EllipseBtn.AutoSize = True
-        Me.EllipseBtn.Checked = True
-        Me.EllipseBtn.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.EllipseBtn.Dock = System.Windows.Forms.DockStyle.Top
-        Me.EllipseBtn.Location = New System.Drawing.Point(3, 101)
-        Me.EllipseBtn.Name = "EllipseBtn"
-        Me.EllipseBtn.Size = New System.Drawing.Size(121, 17)
-        Me.EllipseBtn.TabIndex = 5
-        Me.EllipseBtn.Text = "Ellipse"
-        Me.EllipseBtn.UseVisualStyleBackColor = True
+        Me.ArcBtn.AutoSize = True
+        Me.ArcBtn.Checked = True
+        Me.ArcBtn.CheckState = System.Windows.Forms.CheckState.Checked
+        Me.ArcBtn.Dock = System.Windows.Forms.DockStyle.Top
+        Me.ArcBtn.Location = New System.Drawing.Point(3, 135)
+        Me.ArcBtn.Name = "ArcBtn"
+        Me.ArcBtn.Size = New System.Drawing.Size(121, 17)
+        Me.ArcBtn.TabIndex = 7
+        Me.ArcBtn.Text = "Arc"
+        Me.ArcBtn.UseVisualStyleBackColor = True
         '
         'DxfToBmpFrm
         '
@@ -531,7 +593,7 @@ Partial Class DxfToBmpFrm
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.MinimumSize = New System.Drawing.Size(500, 450)
         Me.Name = "DxfToBmpFrm"
-        Me.Text = "Dxf<>Bmp"
+        Me.Text = "Dxf->Bmp"
         Me.TableLayoutPanel1.ResumeLayout(False)
         Me.Panel1.ResumeLayout(False)
         Me.Panel1.PerformLayout()
@@ -552,6 +614,7 @@ Partial Class DxfToBmpFrm
         CType(Me.TopPcs, System.ComponentModel.ISupportInitialize).EndInit()
         Me.GroupBox3.ResumeLayout(False)
         Me.GroupBox3.PerformLayout()
+        CType(Me.tbScaler, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
 
     End Sub
@@ -560,7 +623,7 @@ Partial Class DxfToBmpFrm
     Friend WithEvents Panel1 As Panel
     Friend WithEvents OpenDxfBtn As Button
     Friend WithEvents GroupBox3 As GroupBox
-    Friend WithEvents PcsMmTxt As TextBox
+    Friend WithEvents PcsMmTxt As NoPasteIntTextBox
     Friend WithEvents GroupBox2 As GroupBox
     Friend WithEvents TableLayoutPanel3 As TableLayoutPanel
     Friend WithEvents HeightPcsTxt As TextBox
@@ -593,4 +656,8 @@ Partial Class DxfToBmpFrm
     Friend WithEvents LineBtn As CheckBox
     Friend WithEvents SplineBtn As CheckBox
     Friend WithEvents EllipseBtn As CheckBox
+    Friend WithEvents TextBtn As CheckBox
+    Friend WithEvents tbScaler As TrackBar
+    Friend WithEvents cbSizeToFit As CheckBox
+    Friend WithEvents ArcBtn As CheckBox
 End Class

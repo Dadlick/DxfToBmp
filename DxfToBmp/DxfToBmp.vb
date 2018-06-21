@@ -1,14 +1,21 @@
-п»ї'for reading * .dxf file used library netDxf.dll (https://github.com/haplokuon/netDxf)
-
 Imports System.IO
+Imports System.Text
 Imports netDxf
+Imports netDxf.Blocks
+Imports netDxf.Collections
 Imports netDxf.Entities
 Imports netDxf.Header
+Imports netDxf.Objects
+Imports netDxf.Tables
+Imports netDxf.Units
+Imports Attribute = netDxf.Entities.Attribute
+Imports Image = netDxf.Entities.Image
+Imports Point = netDxf.Entities.Point
+Imports Trace = netDxf.Entities.Trace
 Imports System.Math
 Imports System.Drawing.Drawing2D
 Public Class DxfToBmpFrm
     Private DxfDoc As DxfDocument
-
     Private WidthMm_ As Double
     Private HeightMm_ As Double
     Private WidthPcs_ As Integer
@@ -37,8 +44,19 @@ Public Class DxfToBmpFrm
     End Function
 
     Private Sub DxfToBmp_Load(sender As Object, e As EventArgs) Handles Me.Load
+        Me.Text = Me.Text & " Ver-" & My.Application.Info.Version.Major & "." & My.Application.Info.Version.Minor & "." & My.Application.Info.Version.Build & "." & My.Application.Info.Version.MinorRevision
+        ImageWorkArea1.ScalerMaximum = tbScaler.Maximum
+        ImageWorkArea1.ScalerMinimum = tbScaler.Minimum
+        ImageWorkArea1.SizeToFit = Me.cbSizeToFit.Checked
+
+        Dim fileInfo As New FileInfo(My.Application.Info.DirectoryPath & "\Sample.dxf")
+
+        If Not FileInfo.Exists Then
+            Exit Sub
+        End If
+
         Try
-            DxfDoc = LoadDxf(My.Application.Info.DirectoryPath & "\spline.dxf")
+            DxfDoc = LoadDxf(fileInfo.FullName)
             Boundary_ = GetBoundary()
         Catch ex As Exception
             Exit Sub
@@ -52,6 +70,9 @@ Public Class DxfToBmpFrm
     End Sub
 
     Private Sub CalculateSize()
+        If PcsMmTxt.Text = "" Then
+            PcsMmTxt.Text = "5"
+        End If
         Dim PcsMm As Integer = CInt(PcsMmTxt.Text)
         Dim MmPcs As Double = 1 / PcsMm
         Dim WHTemp As Integer
@@ -88,9 +109,40 @@ Public Class DxfToBmpFrm
                 Next
             Next
         End If
+
+        If ArcBtn.Checked = True Then
+            For Each Arc As Arc In DxfDoc.Arcs
+                Dim Radius As Double = Arc.Radius
+                Dim StartAngle As Double = Arc.StartAngle
+                Dim EndAngle As Double = Arc.EndAngle
+                Dim Angle As Double
+                Dim StartPoint As Vector2
+                Dim EndPoint As Vector2
+                If EndAngle > StartAngle Then
+                    Angle = EndAngle - StartAngle
+                    StartPoint = New Vector2(Arc.Center.X + Radius * Cos(StartAngle / 180 * PI), Arc.Center.Y + Radius * Sin(StartAngle / 180 * PI))
+                    EndPoint = New Vector2(Arc.Center.X + Radius * Cos(EndAngle / 180 * PI), Arc.Center.Y + Radius * Sin(EndAngle / 180 * PI))
+                Else
+                    Angle = -1 * (360 + (EndAngle - StartAngle))
+                    EndPoint = New Vector2(Arc.Center.X + Radius * Cos(StartAngle / 180 * PI), Arc.Center.Y + Radius * Sin(StartAngle / 180 * PI))
+                    StartPoint = New Vector2(Arc.Center.X + Radius * Cos(EndAngle / 180 * PI), Arc.Center.Y + Radius * Sin(EndAngle / 180 * PI))
+                End If
+                Dim Bulge As Double = Tan((Angle / 180 * PI) / 4)
+                Dim Tb As Bounding = New Bounding(StartPoint, EndPoint, Bulge)
+                Boundary = Bounding.Union(Boundary, Tb)
+            Next
+        End If
+
         If CircleBtn.Checked = True Then
             For Each Circle As Circle In DxfDoc.Circles
                 Dim Tb As Bounding = New Bounding(New Vector2(Circle.Center.X - Circle.Radius, Circle.Center.Y - Circle.Radius), New Vector2(Circle.Center.X + Circle.Radius, Circle.Center.Y + Circle.Radius), False)
+                Boundary = Bounding.Union(Boundary, Tb)
+            Next
+        End If
+
+        If EllipseBtn.Checked = True Then
+            For Each Ellipse As Ellipse In DxfDoc.Ellipses
+                Dim Tb As Bounding = New Bounding(New Vector2(Ellipse.Center.X - Ellipse.MajorAxis / 2, Ellipse.Center.Y - Ellipse.MinorAxis / 2), New Vector2(Ellipse.Center.X + Ellipse.MajorAxis / 2, Ellipse.Center.Y + Ellipse.MinorAxis / 2), False)
                 Boundary = Bounding.Union(Boundary, Tb)
             Next
         End If
@@ -139,7 +191,6 @@ Public Class DxfToBmpFrm
     End Function
 
     Private Sub DrawBitmap()
-
         Dim PcsMm As Integer = CInt(PcsMmTxt.Text)
         Dim MmPcs As Double = 1 / PcsMm
 
@@ -148,17 +199,54 @@ Public Class DxfToBmpFrm
         Dim WhiteBrush As New SolidBrush(Color.White)
         Dim MinX As Double = Boundary_.Min.X - LeftPcs.Value * MmPcs
         Dim MinY As Double = Boundary_.Min.Y - DownPcs.Value * MmPcs
+        Dim Draw As Bitmap
+        Try
+            Draw = New Bitmap(WidthPcs_ + 1, HeightPcs_ + 1)
+        Catch ex As Exception
+            MessageBox.Show("Слишком большой размер картинки " & Chr(10) & Chr(13) & "Уменьшите габариты в .dxf", Me.Text, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Exit Sub
+        End Try
 
-        Dim Draw As Bitmap = New Bitmap(WidthPcs_ + 1, HeightPcs_ + 1)
         Dim gr_Draw As Graphics = Graphics.FromImage(Draw)
         gr_Draw.Clear(Color.White)
         gr_Draw.SmoothingMode = Drawing2D.SmoothingMode.None
+
+#Region "Text"
+        If TextBtn.Checked = True Then
+            For Each Text As Text In DxfDoc.Texts
+                Dim gp As New GraphicsPath()
+                'Microsoft sans serif
+                Dim drawFont As New Font("GOST 2.304 type A", CSng(Text.Height * PcsMm), Drawing.FontStyle.Regular)
+                Dim sz As SizeF = gr_Draw.MeasureString(Text.Value, drawFont)
+                Dim Len As Integer
+                If sz.Width > sz.Height Then
+                    Len = CInt(Ceiling(sz.Width))
+                Else
+                    Len = CInt(Ceiling(sz.Height))
+                End If
+                Dim Dx As Double = Len / 2 - (Len / 2 - sz.Width / 2) * Cos((-Text.Rotation) / 180 * PI)
+                Dim Dy As Double = Len / 2 - (Len / 2 - sz.Height / 2) * Sin((-Text.Rotation) / 180 * PI)
+                Dim TDraw As Bitmap = New Bitmap(Len, Len)
+                Dim Tgr_Draw As Graphics = Graphics.FromImage(TDraw)
+                Tgr_Draw.InterpolationMode = InterpolationMode.HighQualityBilinear
+                Tgr_Draw.SmoothingMode = SmoothingMode.None
+                Tgr_Draw.TextRenderingHint = Drawing.Text.TextRenderingHint.SingleBitPerPixel
+                Dim X As Double = (Text.Position.X - MinX) * PcsMm - Dx
+                Dim Y As Double = HeightPcs_ - CInt((Text.Position.Y - MinY) * PcsMm) - Dy
+                Dim DrawPoint As New Drawing.PointF(X, Y)
+                Dim M As New Drawing2D.Matrix
+                M.RotateAt(-Text.Rotation, New Drawing.Point(TDraw.Width / 2, TDraw.Height / 2), MatrixOrder.Append)
+                Tgr_Draw.Transform = M
+                Tgr_Draw.DrawString(Text.Value, drawFont, BlackBrush, (TDraw.Width / 2) - (sz.Width / 2), (TDraw.Height / 2) - (sz.Height / 2))
+                gr_Draw.DrawImage(TDraw, DrawPoint)
+            Next
+        End If
+#End Region
 
 #Region "Hatch"
         If HatchBtn.Checked = True Then
             For Each Hatch As Hatch In DxfDoc.Hatches
                 Dim gp As New GraphicsPath()
-
                 For Each HatchBoundaryPath As HatchBoundaryPath In Hatch.BoundaryPaths
                     If HatchBoundaryPath.PathType = (HatchBoundaryPathTypeFlags.External Or HatchBoundaryPathTypeFlags.Polyline Or HatchBoundaryPathTypeFlags.Derived) Or
                        HatchBoundaryPath.PathType = (HatchBoundaryPathTypeFlags.External Or HatchBoundaryPathTypeFlags.Polyline Or HatchBoundaryPathTypeFlags.Derived Or HatchBoundaryPathTypeFlags.Outermost) Then
@@ -275,7 +363,6 @@ Public Class DxfToBmpFrm
         End If
 #End Region
 
-
 #Region "Circle"
         If CircleBtn.Checked = True Then
             For Each Circle As Circle In DxfDoc.Circles
@@ -363,7 +450,6 @@ Public Class DxfToBmpFrm
                         X1 = CSng((Center(0) - MinX - Rad) * PcsMm)
                         Y1 = HeightPcs_ - CSng((Center(1) - MinY + Rad) * PcsMm)
                         gp.AddArc(X1, Y1, D, D, CSng(Base), CSng(Ang))
-                        'gr_Draw.DrawArc(pen, X1, Y1, D, D, CSng(Base), CSng(Ang))
                     End If
 
                     If i = LwPolyline.Vertexes.Count - 2 And LwPolyline.IsClosed = True Then
@@ -418,6 +504,42 @@ Public Class DxfToBmpFrm
         End If
 #End Region
 
+#Region "Arc"
+        If ArcBtn.Checked = True Then
+            Dim gp As New GraphicsPath()
+            For Each Arc As Arc In DxfDoc.Arcs
+                Dim Radius As Double = Arc.Radius
+                Dim D As Single = CSng(2 * Radius * PcsMm)
+                If D < 1 Then
+                    Continue For
+                End If
+
+                Dim StartAngle As Double = Arc.StartAngle
+                Dim EndAngle As Double = Arc.EndAngle
+                Dim Angle As Double
+                If EndAngle > StartAngle Then
+                    Angle = EndAngle - StartAngle
+                Else
+                    Angle = -1 * (360 + (EndAngle - StartAngle))
+                End If
+
+                Dim Bulge As Double = Tan((Angle / 180 * PI) / 4)
+                Dim StartPoint As Vector2 = New Vector2(Arc.Center.X + Radius * Cos(StartAngle / 180 * PI), Arc.Center.Y + Radius * Sin(StartAngle / 180 * PI))
+                Dim EndPoint As Vector2 = New Vector2(Arc.Center.X + Radius * Cos(EndAngle / 180 * PI), Arc.Center.Y + Radius * Sin(EndAngle / 180 * PI))
+
+                Dim X1 As Single = CSng((Arc.Center.X - MinX - Radius) * PcsMm)
+                Dim Y1 As Single = HeightPcs_ - CSng((Arc.Center.Y - MinY + Radius) * PcsMm)
+                Dim Base As Double
+                If Bulge > 0 Then
+                    Base = 360 - 180 * angle2Point(New Vector2(Arc.Center.X, Arc.Center.Y), EndPoint) / PI
+                Else
+                    Base = 360 - 180 * angle2Point(New Vector2(Arc.Center.X, Arc.Center.Y), StartPoint) / PI
+                End If
+                gr_Draw.DrawArc(pen, X1, Y1, D, D, CSng(Base), CSng(Angle))
+            Next
+        End If
+#End Region
+
 #Region "Line"
         If LineBtn.Checked = True Then
             For Each Line As Line In DxfDoc.Lines
@@ -454,7 +576,7 @@ Public Class DxfToBmpFrm
     End Sub
 
     Public Function PolyRight(ByVal Vertexes As Vector3()) As Boolean
-        'Р¤СѓРЅРєС†РёСЏ РїСЂРѕРІРµСЂСЏРµС‚ РЅР°РїСЂР°РІР»РµРЅРёРµ РѕР±С…РѕРґР° С‚РѕС‡РµРє
+        'Функция проверяет направление обхода точек
         PolyRight = False
         Dim i As Integer
         Dim rez As Double = 0
@@ -469,7 +591,7 @@ Public Class DxfToBmpFrm
     End Function
 
     Public Function PolyRight(ByVal Vertexes As List(Of LwPolylineVertex)) As Boolean
-        'Р¤СѓРЅРєС†РёСЏ РїСЂРѕРІРµСЂСЏРµС‚ РЅР°РїСЂР°РІР»РµРЅРёРµ РѕР±С…РѕРґР° С‚РѕС‡РµРє
+        'Функция проверяет направление обхода точек
         PolyRight = False
         Dim i As Integer
         Dim rez As Double = 0
@@ -484,27 +606,27 @@ Public Class DxfToBmpFrm
         End If
     End Function
 
-    <System.Diagnostics.DebuggerStepThrough()>
+    <System.Diagnostics.DebuggerStepThrough()> _
     Public Shared Function LineLenght(ByVal point1 As Vector2, ByVal point2 As Vector2) As Double
-        'С„СѓРЅРєС†РёСЏ РІРѕР·РІСЂР°С‰Р°РµС‚ РґР»РёРЅРЅСѓ РјРµР¶РґСѓ С‚РѕС‡РєР°РјРё
+        'функция возвращает длинну между точками
         LineLenght = Sqrt((point2.X - point1.X) ^ 2 + (point2.Y - point1.Y) ^ 2)
     End Function
-    <System.Diagnostics.DebuggerStepThrough()>
+    <System.Diagnostics.DebuggerStepThrough()> _
     Public Shared Function angle2Point(ByVal StartPoint As Vector2, ByVal Endpoint As Vector2) As Double
-        'С„СѓРЅРєС†РёСЏ  РІРѕР·РІСЂР°С‰Р°РµС‚ СѓРіРѕР» РЅР°РєР»РѕРЅР° Р»РёРЅРёРё
+        'функция  возвращает угол наклона линии
         Dim dY As Double = Endpoint.Y - StartPoint.Y
         Dim dX As Double = Endpoint.X - StartPoint.X
         angle2Point = Atan2(dY, dX)
     End Function
 
-    <System.Diagnostics.DebuggerStepThrough()>
+    <System.Diagnostics.DebuggerStepThrough()> _
     Public Shared Function PolarPoint(ByVal pPt As Vector2, ByVal dAng As Double, ByVal dDist As Double)
         Return New Vector2(pPt.X + dDist * Math.Cos(dAng), pPt.Y + dDist * Math.Sin(dAng))
     End Function
 
-    <System.Diagnostics.DebuggerStepThrough()>
+    ' <System.Diagnostics.DebuggerStepThrough()> _
     Public Shared Function PointBelongCircle(ByVal StartPoint As Vector2, ByVal EndPoint As Vector2, ByVal bulg As Double, ByVal CurentPoint As Vector2) As Boolean
-        ' С„СѓРЅРєС†РёСЏ РїСЂРѕРІРµСЂСЏРµС‚ РїСЂРёРЅР°РґР»РµР¶РёС‚ Р»Рё С‚РѕС‡РєРєР° РґСѓРіРµ
+        ' функция проверяет принадлежит ли точкка дуге
         Dim j As Single
         PointBelongCircle = False
         j = Round((CurentPoint.Y - StartPoint.Y) * (EndPoint.X - StartPoint.X) - (CurentPoint.X - StartPoint.X) * (EndPoint.Y - StartPoint.Y), 6)
@@ -514,7 +636,6 @@ Public Class DxfToBmpFrm
             PointBelongCircle = True
         End If
     End Function
-
     Private Sub RedrawBtn_Click(sender As Object, e As EventArgs) Handles RedrawBtn.Click
         ImageWorkArea1.Image = Nothing
         Boundary_ = GetBoundary()
@@ -541,5 +662,35 @@ Public Class DxfToBmpFrm
         If (dialog.ShowDialog = DialogResult.OK) Then
             ImageWorkArea1.Image.Save(dialog.FileName, System.Drawing.Imaging.ImageFormat.Bmp)
         End If
+    End Sub
+
+    Private Sub cbSizeToFit_CheckedChanged(sender As Object, e As EventArgs) Handles cbSizeToFit.CheckedChanged
+        Me.tbScaler.Enabled = Not Me.cbSizeToFit.Checked
+        ImageWorkArea1.SizeToFit = Me.cbSizeToFit.Checked
+        If Not Me.cbSizeToFit.Checked Then
+            ImageWorkArea1.ScaleFactor = Me.tbScaler.Value / 10
+        End If
+        ImageWorkArea1.UpdateMe()
+    End Sub
+
+    Private Sub tbScaler_Scroll(sender As Object, e As EventArgs) Handles tbScaler.Scroll
+        ImageWorkArea1.ScaleFactor = Me.tbScaler.Value / 10
+        ImageWorkArea1.UpdateMe()
+    End Sub
+
+    Private Sub ImageWorkArea1_ScaleFactorChange(Value As Single) Handles ImageWorkArea1.ScaleFactorChange
+        Me.tbScaler.Value = Value
+    End Sub
+
+    Private Sub ImageWorkArea1_DragEnter(sender As Object, e As DragEventArgs) Handles ImageWorkArea1.DragEnter
+        Dim Ext As String = LCase(Path.GetExtension(e.Data.GetData(DataFormats.FileDrop)(0)))
+        If Ext = ".dxf" Then
+            e.Effect = DragDropEffects.Move
+        End If
+    End Sub
+
+    Private Sub ImageWorkArea1_DragDrop(sender As Object, e As DragEventArgs) Handles ImageWorkArea1.DragDrop
+        DxfDoc = LoadDxf(e.Data.GetData(DataFormats.FileDrop)(0))
+        RedrawBtn_Click(Nothing, Nothing)
     End Sub
 End Class
